@@ -1,0 +1,39 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: ksr-flunetd
+  namespace: default
+  labels:
+    name: ksr-flunetd
+    env: dev
+spec: # no replicas
+  selector:
+    matchLabels:
+      name: ksr-fluentd
+  template:
+    metadata:
+      labels:
+        name: ksr-fluentd
+    spec:
+      containers:
+      - name: ksr-flunetd
+        image: fluentd:latest
+        volumeMounts:
+        - name: logs
+          mountPath: /var/log/logs
+        resources:
+          limits:
+            memory: 2Gi 
+          requests:
+            cpu: 1024
+            memory: 4Gi
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              matchLabels:
+              - nodeName: test-node # we can also select, whether the daemon set can run on all nodes or only on some nodes.
+      volumes:
+      - name: logss
+        hostPath: # mount from this location in the host / node.
+          path: /var/log/logs

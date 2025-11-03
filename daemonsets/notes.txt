@@ -1,0 +1,6 @@
+Nothing specific for a daemonset, just that choose this when required to run a node level metric or log collection application with a daemonset.
+
+> By default, k8s adds noschedule toleration to the pod template (spec.template) so that, even there is a no schedule taint on the node, daemonset pods are still created.
+
+> When cluster and services are up and running, and with any type of node autoscaler (cluster autoscaler or  karpenter), the daemonset pods are automatically added 
+    to the new nodes.

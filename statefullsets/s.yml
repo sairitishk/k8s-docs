@@ -1,0 +1,57 @@
+---
+
+apiVersion: apps/v1
+kind: StatefulSet
+metdata:
+  name: mysql-ksr
+  labels:
+    name: mysql-ksr
+    env: test
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      name: mysql-ksr
+      env: test
+  serviceName: 'mysql-ksr-headless' # for statefulset, need to only use headless service
+  template:
+    metadata:
+      labels:
+        name: mysql-ksr
+        env: test
+    spec:
+      name: mysql-ksr-pod
+      image: mysql:latest
+      ports:
+      - containerPort: 3306
+        name: mysql-port
+      volumeMount:
+      - name: sql-config
+        mountPath: /usr/local/bin
+  volumeClaimTemplate:
+  - metadata:
+      name: sql-config
+    spec:
+      accessModes: ['ReadWriteOnce'] # check diff between this and ReadWriteOncePod
+      storageClassName: 'mysql-ksr-storage-class'
+      resources:
+        requests:
+          storage: 1Gi
+      
+---
+
+apiVersion: apps/v1
+kind: Service
+metadata:
+  name: mysql-ksr-headless-service
+  labels:
+    name: mysql-ksr-headless-service
+    env: test
+spec:
+  ports:
+  - port: 3306
+    name: mysql
+  selector:
+    name: mysql-ksr
+    env: test
+  clusterIP: None

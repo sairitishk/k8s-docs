@@ -1,0 +1,9 @@
+> It is always used, when the application needs to maintain state (i.e, the request coming to the pod, should only be handled by the pod)
+
+There should be persistent volumes attached to the pod. (mandatory)
+Naming of pods will be sequential,
+
+scale out and scale in pods will also be sequential
+
+if pods are deleted, the pv won't be deleted (so that when the pod is created back, it gets assigned to the same pv)
+

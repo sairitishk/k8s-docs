@@ -1,0 +1,25 @@
+> Replica set is only responsible for maintaining the number of pod replicas based on labels.
+    (if there are pods already running with the same labels, then those pods are also choosen by the replicaset to mantain the total number of running pods.)
+
+    https://kubernetes.io/docs/concepts/workloads/controllers/replicaset/#non-template-pod-acquisitions
+
+    [ TO CHECK: if pods are already running with label and replica set is created later, then does the previous pods have controller flag set to true?]
+
+> To update image of pods in replicaset, need to update replicaset.yml file with new image and delete existing pods, then new pods that are created 
+(in order to maintain the total number of replicas) will have the new image
+
+> Deployments, if image is updated, new pods are automatically replaced.
+also we can set the deployment strategry as per our needs, whether rolling update or others.
+
+
+#############
+
+
+Replicaset vs Replication controller
+
+
+Main difference: in replication controller (old version), only select pods (selector field) using single key value pairs.
+                 But in replica set, we can use matchLabels and matchExpressions.
+
+Other difference is that, replication controller manages only those pods that it creates (even if there are pods previously with same labels).
+But this is not the same with replicaset.

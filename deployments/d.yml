@@ -1,0 +1,56 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx-ksr-1
+  labels:
+    name: nginx-ksr-1
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      name: nginx-ksr-1
+  template:
+    metadata:
+      labels:
+        name: nginx-ksr-1
+    spec:
+      containers:
+      - name: nginx-ksr-pod-1
+        image: nginx:latest
+
+---
+
+# with strategy
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx-ksr-rolling
+  labels:
+    name: nginx-ksr-rolling
+    env: prod
+  namespace: default
+spec:
+  replicas: 5
+  selector:
+    matchLabels:
+      name: nginx-ksr-rolling-pods
+      env: prod
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 3
+  # strategy:
+  #   type: RollingUpdate
+  #   rollingUpdate:
+  #     maxUnavailable: 3
+  template:
+    metadata:
+      labels:
+        name: nginx-ksr-rolling-pods
+        env: prod
+    spec:
+      containers:
+      - name: nginx-ksrr-1
+        image: nginx:latest
+      
