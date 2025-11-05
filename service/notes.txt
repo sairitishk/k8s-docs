@@ -1,0 +1,29 @@
+Service Discovery:
+    When a clusterIP service is created, it gets a DNS of form "<service-name>.<namespace-name>.svc.clster.local". CoreDNS is responsible for creating the DNS record, 
+    and the value of the DNS record is the actual clusterIP itself.
+
+    This is just a virtual IP i.e. no actual network interface for this IP is created, instead just a dummy value to say traffic is hitting this service.
+
+    When a service is created, and the underlying pods (to which requests need to be sent) are found using selectors, these are added to the endpoint slice for that service.
+
+    so endpoint slice always have a list of all healthy pods to which traffic can be sent for that service.
+
+    kube-proxy running in every node watches the api service for service related API calls, and after everytime a service is created, updated, etc; the iptables or internal 
+    route tables of the node  so that request to any of the service can be intercepted and the destination Ip can be changed to one of the service-B's pod IPs (DNAT) 
+    (service cluster IP and values as the pods IPs gathered from the endpoint slice).
+
+    So lets say, a request from service A, calls service B, both in different nodes, coreDNS resolves the service DNS to the clusterIP, and kube-proxy uses the clusterIP and 
+    in node-A checks for all list of available IPs to which the request can be sent, and modify the destination IP in the actual DNS itself (with one of the corresponding service-B's 
+    pod IP address) --> DNAT [ DYNAMIC NETWORK ADDRESS TRANSLATION ] and then accordingly the request will be sent to the one of the pod of service B, via the CNI Network.
+
+Apart from updating the IP tables after every service related operation from the API server, kube-proxy also syncs the IPs every 30 sec, so that anything that might be missed
+are added to the iptables accordingly.
+
+
+
+##############################
+
+
+AWS VPC CNI -- Plugin to add when creating the cluster, so that this is responsible for assigning an IP to each and every pod created from the cluster (from the cluster CIDR)
+
+

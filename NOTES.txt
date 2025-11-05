@@ -1,0 +1,11 @@
+Network Plugin in a cluster - responsible for ensuring that all pods gets its own IP (from within the CIDR assigned to the cluster)
+
+[ In MAX, VPC has 2 CIDRs, one with 10. and is of range /24 or /26, but and other CIDR is starting with 100 and is of range /16.
+    10. CIDR is used for VPC subnets, and 100. is used for karpenter nodes]
+
+karpenter nodes also have IPs in the 100 CIDR
+
+Check in MAX, how are the subnets deployed??
+
+
+==========================================================================================================================================================

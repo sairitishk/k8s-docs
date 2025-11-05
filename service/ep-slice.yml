@@ -1,0 +1,40 @@
+# when a service doesn't have a selector field, ep slice isnt created by default.
+# we can create one and map this to the above service like below:
+
+apiVerion: apps/v1
+kind: Service
+metadata:
+  name: no-selector-service
+  namespace: test-ns
+spec:
+  ports:
+  - name: test-port
+    port: 80
+    targetPort: 80
+    protocol: TCP
+
+
+---
+
+apiVersion: discovery.k8s.io/v1
+kind: EndpointSlice
+metadata:
+  name: no-selector-service-1 # by convention, use the name of the Service
+                     # as a prefix for the name of the EndpointSlice
+  labels:
+    # You should set the "kubernetes.io/service-name" label.
+    # Set its value to match the name of the Service
+    kubernetes.io/service-name: no-selector-service
+addressType: IPv4
+ports:
+  - name: http # should match with the name of the service port defined above
+    appProtocol: http
+    protocol: TCP
+    port: 9376
+endpoints:
+  - addresses:
+      - "10.4.5.6"
+  - addresses:
+      - "10.1.2.3"
+
+# so these are assigned accordingly in the iptables by the kube-proxy running in each of the nodes.

@@ -1,0 +1,97 @@
+apiVersion: apps/v1  # Use this the most.
+kind: Service
+metadata:
+  name: srk-clusterip-service 
+  namespace: test1-ns 
+spec:
+  selectors: # no match labels criteria, just pass the label key value pair here
+    name: nginx-deployment # pass the deployment name that needs to be exposed by the service
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: 80
+  # clusterIP: None # If this is added, then its a headless service (used for stateful sets)
+
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx-deployment
+  namespace: test1-ns
+  labels:
+    env: prod
+spec:
+  replicas: 3
+  service: srk-clusterip-service
+  selector:
+    matchLabels:
+      env: prod
+  template:
+    metadata:
+      labels:
+        env: prod
+    spec:
+      containers:
+      - name: nginx-test-container
+        image: nginx:latest
+        volumeMount:
+        - name: tmp-configs
+          mountPath: /var/log/config
+        ports:
+        - containerPort: 80
+      volumes:
+      - name: tmp-configs
+        path:
+          hostPath: /tmp/logs/mount
+
+---
+
+# NodePort
+
+apiVersion: apps/v1
+kind: Service
+metadata:
+  name: srk-np-service 
+  namespace: test1-ns 
+spec:
+  selectors: # no match labels criteria, just pass the label key value pair here
+    name: nginx-deployment # pass the deployment name that needs to be exposed by the service
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: 80
+    nodePort: 35986 # should be between 30000 and 32767
+  type:  NodePort
+
+
+---
+
+# Load Balancer
+apiVersion: apps/v1
+kind: Service
+metadata:
+  name: srk-lb-service 
+  namespace: test1-ns 
+  labels:
+    serice.beta.kubernetes.io/aws-load-balancer-type: nlb #(this creates an nlb)
+    serice.beta.kubernetes.io/aws-load-balancer-scheme: internal # to specify if the nlb should be public or internal
+spec:
+  selectors: # no match labels criteria, just pass the label key value pair here
+    name: nginx-deployment # pass the deployment name that needs to be exposed by the service
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: 80
+  type: LoadBalancer
+
+---
+# External Name (Use this when need to refer to externla domains, in production we mostly use DNS, not this.)
+apiVersion: apps/v1
+kind: Service
+metadata:
+  name: srk-externalname-service 
+  namespace: test1-ns 
+spec:
+  externalName: my.database.domain.com # dummy
+  type: ExternalName

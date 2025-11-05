@@ -1,0 +1,78 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: srk-netpol
+  namespace: test-ns # this is attached to the test-ns namespace 
+spec:
+  podSelector:
+    matchLabels:
+      role: db  # firstly all pods with this label are found, on which this policy will be acted on
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  - from: ## IF ALL 3 ARE UNDER SINGLE -, then all these 3 conditions are combined  [logical AND]
+          ## IF 3 DIFFERENT - are used, then ingress request will be accepeted if any of the request matches [logical OR]
+    - ipBlock:
+        cidr: 172.17.0.0/16 # only allow ingress requests from this CIDE
+        except:
+        - 172.17.1.0/24
+    - namespaceSelector: # allow request if the source pod is in ns with the following label
+        matchLabels:
+          project: myproject
+    - podSelector:  # allow request if the source pod has the following label
+        matchLabels:
+          role: frontend
+    ports:
+    - protocol: TCP
+      port: 6379 # and allow all this traffic only on this port
+  egress:
+  - to:
+    - ipBlock:
+        cidr: 10.0.0.0/24  # smlly allow egress traffic only to this cidr
+    ports:
+    - protocol: TCP
+      port: 5978 # on this port only.
+      # endPort: 6000 # add this to specify a range of ports
+
+
+---
+
+# policy to have deny all ingress:
+
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-all-ingress
+  namespace: test-ns
+spec:
+  podSelector: {}
+  # ingress: # ADDING THIS SECTION WILL MAKE THE NETPOL TO HAVE ALLOW ALL INGRESS ENABLED.
+  # - {}
+  policyTypes:
+  - Ingress
+
+
+---
+
+
+# Lets say if we want to allow egress from multiple namespaces, if there is a label defined, we can select this label using match expressions:
+
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: egress-namespaces
+spec:
+  podSelector:
+    matchLabels:
+      app: myapp
+  policyTypes:
+  - Egress
+  egress:
+  - to:
+    - namespaceSelector:
+        matchExpressions:
+        - key: namespace
+          operator: In
+          values: ["frontend", "backend"]

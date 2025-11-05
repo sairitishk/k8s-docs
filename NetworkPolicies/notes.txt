@@ -1,0 +1,11 @@
+We cannot use network policies with VPC CNI in an EKS cluster, since there is no support.
+
+
+For this, we need to use calico or cilium CNI plugin, only then the network policies will be in effect.
+
+
+####################
+
+In most common cases, these are assigned to namespaces, so that we can control traffic flow between services in different ns.
+
+This is similar to definining security groups to the ecs tasks (only allow traffic from a set of IPs on particular ports, and smlly for egress as well)
